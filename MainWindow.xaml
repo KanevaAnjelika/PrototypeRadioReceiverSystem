@@ -5,8 +5,271 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PrototypeRadioReceiverSystem"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        
-    </Grid>
+        Title="Радиоприёмник TEA5767" Height="400" Width="500"
+        WindowStyle="None" AllowsTransparency="True" ResizeMode="CanMinimize"
+        Background="Transparent"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Segoe UI"
+        TextOptions.TextFormattingMode="Display">
+
+    <!-- Палитра макета Figma и переиспользуемые стили (только верстка) -->
+    <Window.Resources>
+
+        <!-- Цвета -->
+        <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#F5EDF0"/>
+        <SolidColorBrush x:Key="PanelBrush" Color="#DCBDDF"/>
+        <SolidColorBrush x:Key="PrimaryButtonBrush" Color="#9A99E1"/>
+        <SolidColorBrush x:Key="SecondaryButtonBrush" Color="#DCBDDF"/>
+        <SolidColorBrush x:Key="AccentBlueBrush" Color="#008BD0"/>
+        <SolidColorBrush x:Key="DarkTextBrush" Color="#3A2B45"/>
+        <SolidColorBrush x:Key="GrayTextBrush" Color="#4A4A4A"/>
+        <SolidColorBrush x:Key="FieldBorderBrush" Color="#B79BC0"/>
+
+        <!-- Круглая/скруглённая кнопка: фон и текст задаются у самого Button -->
+        <Style x:Key="RoundedButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="12"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.88"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.72"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Кнопка-иконка в шапке (солнце/луна, закрыть) -->
+        <Style x:Key="IconButtonStyle" TargetType="Button" BasedOn="{StaticResource RoundedButtonStyle}">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+        </Style>
+
+        <!-- Скруглённый ComboBox -->
+        <Style x:Key="RoundedComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Foreground" Value="{StaticResource DarkTextBrush}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton Focusable="False" ClickMode="Press"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay,
+                                                      RelativeSource={RelativeSource TemplatedParent}}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="ComboBorder"
+                                                Background="White"
+                                                BorderBrush="{StaticResource FieldBorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="10">
+                                            <Path HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                  Margin="0,0,10,0" Fill="#3A2B45"
+                                                  Data="M 0 0 L 8 0 L 4 4 Z"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="ComboBorder" Property="BorderBrush" Value="#008BD0"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter IsHitTestVisible="False"
+                                              Margin="10,0,30,0"
+                                              VerticalAlignment="Center" HorizontalAlignment="Left"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"/>
+                            <Popup AllowsTransparency="True" Focusable="False"
+                                   Placement="Bottom" PopupAnimation="Slide"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}">
+                                <Border Background="White"
+                                        BorderBrush="{StaticResource FieldBorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="10"
+                                        MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                                        MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <ScrollViewer>
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <!-- Корневая карточка окна со скруглением и мягкой тенью -->
+    <Border Background="{StaticResource WindowBackgroundBrush}"
+            CornerRadius="18">
+        <Border.Effect>
+            <DropShadowEffect Color="#3A2B45" Opacity="0.25"
+                              BlurRadius="16" ShadowDepth="0"/>
+        </Border.Effect>
+
+        <!-- 5 строк: шапка / частота / кнопки 1 / кнопки 2 / нижняя панель -->
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- 1. ШАПКА -->
+            <Border Grid.Row="0" Background="{StaticResource PanelBrush}"
+                    CornerRadius="18,18,0,0" Padding="16,10">
+                <Grid>
+                    <!-- Заголовок по центру, справа от него иконка смены темы -->
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="Радиоприёмник TEA5767"
+                                   FontSize="18" FontWeight="Bold"
+                                   Foreground="{StaticResource DarkTextBrush}"
+                                   VerticalAlignment="Center"/>
+                        <Button x:Name="ThemeButton" Content="☾"
+                                Style="{StaticResource IconButtonStyle}"
+                                FontFamily="Segoe UI Symbol"
+                                Width="34" Height="30" Margin="12,0,0,0"
+                                Background="#C6A9CC"
+                                Foreground="{StaticResource DarkTextBrush}"/>
+                    </StackPanel>
+
+                    <!-- Нет системного заголовка — кнопка закрытия сделана вручную -->
+                    <Button x:Name="CloseButton" Content="✕"
+                            Style="{StaticResource IconButtonStyle}"
+                            FontFamily="Segoe UI Symbol"
+                            HorizontalAlignment="Right" VerticalAlignment="Center"
+                            Width="28" Height="28"
+                            Background="Transparent"
+                            Foreground="{StaticResource DarkTextBrush}"/>
+                </Grid>
+            </Border>
+
+            <!-- 2. ЧАСТОТА И УРОВЕНЬ СИГНАЛА -->
+            <StackPanel Grid.Row="1" VerticalAlignment="Center"
+                        HorizontalAlignment="Center" Margin="20,0">
+                <TextBlock x:Name="FrequencyTextBlock"
+                           Text="101.5 МГц"
+                           FontSize="56" FontWeight="Bold"
+                           Foreground="{StaticResource AccentBlueBrush}"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,10"/>
+                <TextBlock x:Name="SignalTextBlock"
+                           Text="Уровень сигнала: 8/10 Стерео"
+                           FontSize="15"
+                           Foreground="{StaticResource GrayTextBrush}"
+                           HorizontalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- 3. ПЕРВАЯ ЛИНИЯ КНОПОК -->
+            <Grid Grid.Row="2" Margin="20,0,20,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" x:Name="FreqUpButton" Content="Частота +"
+                        Style="{StaticResource RoundedButtonStyle}" Height="42"
+                        Margin="0,0,5,0"
+                        Background="{StaticResource PrimaryButtonBrush}"/>
+                <Button Grid.Column="1" x:Name="FreqDownButton" Content="Частота -"
+                        Style="{StaticResource RoundedButtonStyle}" Height="42"
+                        Margin="5,0,5,0"
+                        Background="{StaticResource PrimaryButtonBrush}"/>
+                <Button Grid.Column="2" x:Name="ScanButton" Content="Поиск"
+                        Style="{StaticResource RoundedButtonStyle}" Height="42"
+                        Margin="5,0,5,0"
+                        Background="{StaticResource PrimaryButtonBrush}"/>
+                <Button Grid.Column="3" x:Name="SaveButton" Content="Сохранить"
+                        Style="{StaticResource RoundedButtonStyle}" Height="42"
+                        Margin="5,0,0,0"
+                        Background="{StaticResource PrimaryButtonBrush}"/>
+            </Grid>
+
+            <!-- 4. ВТОРАЯ ЛИНИЯ КНОПОК -->
+            <Grid Grid.Row="3" Margin="20,0,20,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" x:Name="FavoritesButton" Content="Избранное"
+                        Style="{StaticResource RoundedButtonStyle}" Height="38"
+                        Margin="0,0,5,0"
+                        Background="{StaticResource SecondaryButtonBrush}"
+                        Foreground="{StaticResource DarkTextBrush}"/>
+                <Button Grid.Column="1" x:Name="LogButton" Content="Журнал операций"
+                        Style="{StaticResource RoundedButtonStyle}" Height="38"
+                        Margin="5,0,0,0"
+                        Background="{StaticResource SecondaryButtonBrush}"
+                        Foreground="{StaticResource DarkTextBrush}"/>
+            </Grid>
+
+            <!-- 5. ПАНЕЛЬ ПОДКЛЮЧЕНИЯ -->
+            <Border Grid.Row="4" Background="{StaticResource PanelBrush}"
+                    CornerRadius="0,0,18,18" Padding="16,12">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="COM-порт:"
+                               VerticalAlignment="Center" Margin="0,0,10,0"
+                               FontSize="14" FontWeight="SemiBold"
+                               Foreground="{StaticResource DarkTextBrush}"/>
+
+                    <ComboBox Grid.Column="1" x:Name="PortComboBox"
+                              Style="{StaticResource RoundedComboBoxStyle}"
+                              VerticalAlignment="Center" Margin="0,0,12,0"
+                              SelectedIndex="0">
+                        <ComboBoxItem Content="COM1"/>
+                        <ComboBoxItem Content="COM2"/>
+                        <ComboBoxItem Content="COM3"/>
+                        <ComboBoxItem Content="COM4"/>
+                    </ComboBox>
+
+                    <Button Grid.Column="2" x:Name="ConnectButton" Content="Подключиться"
+                            Style="{StaticResource RoundedButtonStyle}"
+                            VerticalAlignment="Center" Padding="16,7" Margin="0,0,12,0"
+                            Background="{StaticResource AccentBlueBrush}"/>
+
+                    <!-- Серый = нет связи, красный = ошибка (менять Fill из кода) -->
+                    <Ellipse Grid.Column="3" x:Name="StatusIndicator"
+                             Width="16" Height="16" VerticalAlignment="Center"
+                             Fill="#9E9E9E"
+                             Stroke="#FFFFFF" StrokeThickness="1"/>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
 </Window>
