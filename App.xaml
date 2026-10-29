@@ -1,9 +1,109 @@
 ﻿<Application x:Class="PrototypeRadioReceiverSystem.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:PrototypeRadioReceiverSystem"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <!-- Палитра (по умолчанию — светлая тема) -->
+        <SolidColorBrush x:Key="WindowBgBrush" Color="#F5EDF0"/>
+        <SolidColorBrush x:Key="PanelBrush" Color="#DCBDDF"/>
+        <SolidColorBrush x:Key="PrimaryButtonBrush" Color="#9A99E1"/>
+        <SolidColorBrush x:Key="PrimaryButtonFgBrush" Color="White"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#008BD0"/>
+        <SolidColorBrush x:Key="TextBrush" Color="#3A2B45"/>
+
+        <!-- Шрифт по умолчанию для всех элементов управления -->
+        <Style TargetType="Control">
+            <Setter Property="FontFamily" Value="Montserrat Alternates"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <!-- Круглая/скруглённая кнопка -->
+        <Style x:Key="RoundButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryButtonFgBrush}"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.85"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.70"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Скруглённый ComboBox -->
+        <Style x:Key="RoundComboBox" TargetType="ComboBox">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton Focusable="False" ClickMode="Press"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay,
+                                                      RelativeSource={RelativeSource TemplatedParent}}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="ComboBorder"
+                                                Background="White"
+                                                BorderBrush="#B79BC0"
+                                                BorderThickness="1"
+                                                CornerRadius="8">
+                                            <Path HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                  Margin="0,0,8,0" Fill="#3A2B45"
+                                                  Data="M 0 0 L 8 0 L 4 4 Z"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="ComboBorder" Property="BorderBrush" Value="#008BD0"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter IsHitTestVisible="False"
+                                              Margin="10,0,28,0"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Left"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"/>
+                            <Popup AllowsTransparency="True" Focusable="False"
+                                   Placement="Bottom" PopupAnimation="Slide"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}">
+                                <Border Background="White"
+                                        BorderBrush="#B79BC0"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                                        MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <ScrollViewer>
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Application.Resources>
 </Application>
