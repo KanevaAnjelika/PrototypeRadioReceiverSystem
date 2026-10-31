@@ -16,7 +16,6 @@
         FontWeight="Bold"
         TextOptions.TextFormattingMode="Display">
 
-    <!-- Корневая карточка -->
     <Border x:Name="RootBorder" Background="{DynamicResource WindowBgBrush}" CornerRadius="12">
         <Grid>
             <Grid.RowDefinitions>
@@ -29,61 +28,30 @@
             <Border x:Name="HeaderBorder" Grid.Row="0"
                     Background="{DynamicResource PanelBrush}" CornerRadius="12,12,0,0">
                 <Grid MouseLeftButtonDown="Header_MouseLeftButtonDown">
+                    <!-- Текст по центру с отступом справа 63 -->
                     <TextBlock Text="Радиоприёмник TEA5767"
                                FontSize="20" FontWeight="Bold"
                                x:Name="HeaderTextBlock"
                                HorizontalAlignment="Center" VerticalAlignment="Center"
-                               Foreground="{DynamicResource TextBrush}"/>
+                               Foreground="{DynamicResource TextBrush}"
+                               Margin="0,0,63,0"/>
 
-                    <!-- Кнопка смены темы -->
+                    <!-- Иконка темы: расстояние 15px от крестика закрытия -->
                     <Button x:Name="ThemeButton" Content="🌙"
                             Width="40" Height="40"
                             HorizontalAlignment="Right" VerticalAlignment="Center"
-                            Margin="0,0,46,0"
+                            Margin="0,0,53,0"
                             FontSize="32" FontWeight="Normal"
                             Background="Transparent" BorderThickness="0"
-                            Cursor="Hand" Click="ThemeButton_Click">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border x:Name="Bd" Background="{TemplateBinding Background}"
-                                        CornerRadius="8">
-                                    <ContentPresenter HorizontalAlignment="Center"
-                                                      VerticalAlignment="Center"/>
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="Bd" Property="Opacity" Value="0.75"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
+                            Cursor="Hand" Click="ThemeButton_Click"
+                            Foreground="#FFD700"/>
 
                     <!-- Кнопка закрыть -->
                     <Button x:Name="CloseButton" Content="✕"
-                            Width="28" Height="28"
+                            Style="{StaticResource CloseCrossButton}"
                             HorizontalAlignment="Right" VerticalAlignment="Center"
                             Margin="0,0,10,0"
-                            FontSize="16" FontWeight="Normal"
-                            Foreground="{DynamicResource TextBrush}"
-                            Background="Transparent" BorderThickness="0"
-                            Cursor="Hand" Click="CloseButton_Click">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border x:Name="Bd" Background="{TemplateBinding Background}"
-                                        CornerRadius="8">
-                                    <ContentPresenter HorizontalAlignment="Center"
-                                                      VerticalAlignment="Center"/>
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="Bd" Property="Background" Value="#C05050"/>
-                                        <Setter Property="Foreground" Value="White"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
+                            Click="CloseButton_Click"/>
                 </Grid>
             </Border>
 
@@ -107,15 +75,15 @@
                                HorizontalAlignment="Center"
                                Margin="0,14,0,0"/>
 
-                    <!-- Ряд 4 кнопок: левая группа (Частота +/-) и правая группа (Поиск, Сохранить) -->
+                    <!-- Ряд 4 кнопок: внутри группы 50, между группами 60 -->
                     <Grid Margin="20,35,20,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="100"/>
-                            <ColumnDefinition Width="24"/>
+                            <ColumnDefinition Width="50"/>
                             <ColumnDefinition Width="100"/>
-                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="60"/>
                             <ColumnDefinition Width="100"/>
-                            <ColumnDefinition Width="24"/>
+                            <ColumnDefinition Width="50"/>
                             <ColumnDefinition Width="100"/>
                         </Grid.ColumnDefinitions>
 
@@ -148,7 +116,7 @@
                                 Click="SaveButton_Click"/>
                     </Grid>
 
-                    <!-- Ряд 2 кнопок -->
+                    <!-- Ряд 2 кнопок: расстояние 104 -->
                     <StackPanel Orientation="Horizontal"
                                 HorizontalAlignment="Center"
                                 Margin="0,70,0,0">
@@ -158,15 +126,17 @@
                                 FontSize="18" FontWeight="SemiBold"
                                 Background="{DynamicResource PanelBrush}"
                                 Foreground="{DynamicResource TextBrush}"
-                                Margin="0,0,10,0"
+                                BorderThickness="0"
+                                Margin="0,0,104,0"
                                 Click="FavoritesButton_Click"/>
 
                         <Button x:Name="LogButton" Content="Журнал операций"
                                 Style="{StaticResource RoundButton}"
-                                Width="196" Height="40"
+                                Width="220" Height="40"
                                 FontSize="18" FontWeight="SemiBold"
                                 Background="{DynamicResource PanelBrush}"
                                 Foreground="{DynamicResource TextBrush}"
+                                BorderThickness="0"
                                 Click="LogButton_Click"/>
                     </StackPanel>
 
@@ -176,11 +146,11 @@
             <!-- НИЖНЯЯ ПАНЕЛЬ -->
             <Border x:Name="BottomBorder" Grid.Row="2"
                     Background="{DynamicResource PanelBrush}" CornerRadius="0,0,12,12">
-                <Grid Margin="0">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="137"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
@@ -193,9 +163,10 @@
                                VerticalAlignment="Center"
                                Margin="24,0,10,0"/>
 
+                    <!-- ComboBox: минимальная ширина, цвета меняются по теме -->
                     <ComboBox Grid.Column="1" x:Name="PortComboBox"
                               Style="{StaticResource RoundComboBox}"
-                              Width="80" Height="30"
+                              Width="100" Height="30"
                               VerticalAlignment="Center"
                               SelectedIndex="0">
                         <ComboBoxItem Content="COM1"/>
@@ -204,24 +175,23 @@
                         <ComboBoxItem Content="COM4"/>
                     </ComboBox>
 
-                    <!-- Кружок статуса: слева от кнопки «Подключиться», отступ 15 -->
-                    <Ellipse Grid.Column="3" x:Name="StatusIndicator"
-                             Width="20" Height="20"
-                             VerticalAlignment="Center"
-                             HorizontalAlignment="Right"
-                             Margin="0,0,15,0"
-                             Fill="#9E9E9E"/>
-
-                    <!-- Кнопка Подключиться: справа -->
-                    <Button Grid.Column="4" x:Name="ConnectButton"
+                    <!-- Кнопка подключения: 150x30, белый жирный текст, без обводки -->
+                    <Button Grid.Column="3" x:Name="ConnectButton"
                             Content="Подключиться"
                             Style="{StaticResource RoundButton}"
-                            FontSize="16"
-                            Height="30" Padding="12,0"
-                            VerticalAlignment="Center"
-                            Margin="0,0,25,0"
+                            Width="150" Height="30" Padding="0"
+                            FontSize="16" FontWeight="Bold"
+                            Foreground="White"
+                            BorderThickness="0"
                             Background="{DynamicResource AccentBrush}"
                             Click="ConnectButton_Click"/>
+
+                    <!-- Кружок статуса: справа от кнопки, отступ 17 -->
+                    <Ellipse Grid.Column="4" x:Name="StatusIndicator"
+                             Width="20" Height="20"
+                             VerticalAlignment="Center"
+                             Margin="17,0,25,0"
+                             Fill="#9E9E9E"/>
                 </Grid>
             </Border>
         </Grid>

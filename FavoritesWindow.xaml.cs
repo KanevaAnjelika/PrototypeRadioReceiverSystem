@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Input;
 
 namespace PrototypeRadioReceiverSystem
 {
@@ -13,7 +14,7 @@ namespace PrototypeRadioReceiverSystem
             InitializeComponent();
 
             // Демо-данные (заглушка до подключения реального хранилища)
-            FavoritesGrid.ItemsSource = new List<FavoriteStation>
+            FavoritesListBox.ItemsSource = new List<FavoriteStation>
             {
                 new FavoriteStation { Frequency = "101.5 МГц", Name = "Русское радио", Date = "28.10.2026" },
                 new FavoriteStation { Frequency = "88.6 МГц",  Name = "Максимум",     Date = "27.10.2026" },
@@ -31,13 +32,20 @@ namespace PrototypeRadioReceiverSystem
             // TODO: удалить выбранную станцию из списка
         }
 
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        private void CloseBtn_Click(object sender, RoutedEventArgs e)
         {
             Close();
         }
+
+        // Перетаскивание окна за шапку
+        private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+                DragMove();
+        }
     }
 
-    // Модель строки таблицы «Избранные станции»
+    // Модель карточки избранной станции
     public class FavoriteStation
     {
         public string Frequency { get; set; }

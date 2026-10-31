@@ -7,64 +7,83 @@
         Title="Избранное"
         Width="600" Height="367"
         ResizeMode="NoResize"
+        WindowStyle="None"
+        AllowsTransparency="True"
         WindowStartupLocation="CenterOwner"
-        Background="{DynamicResource WindowBgBrush}"
+        Background="Transparent"
         FontFamily="Montserrat Alternates"
         FontSize="14"
         FontWeight="Bold"
         TextOptions.TextFormattingMode="Display">
 
     <Window.Resources>
-        <!-- Стиль ячеек DataGrid: шрифт 20 Medium -->
-        <Style x:Key="CellStyle" TargetType="TextBlock">
-            <Setter Property="FontFamily" Value="Montserrat Alternates"/>
-            <Setter Property="FontSize" Value="20"/>
-            <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-        </Style>
-        <Style x:Key="CellLeft" TargetType="TextBlock" BasedOn="{StaticResource CellStyle}">
-            <Setter Property="HorizontalAlignment" Value="Left"/>
-            <Setter Property="Margin" Value="8,0,0,0"/>
-        </Style>
-        <Style x:Key="CellCenter" TargetType="TextBlock" BasedOn="{StaticResource CellStyle}">
-            <Setter Property="HorizontalAlignment" Value="Center"/>
-        </Style>
-        <Style x:Key="CellRight" TargetType="TextBlock" BasedOn="{StaticResource CellStyle}">
-            <Setter Property="HorizontalAlignment" Value="Right"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
-        </Style>
+        <!-- Шаблон карточки -->
+        <DataTemplate x:Key="FavoriteCardTemplate">
+            <Border Background="{DynamicResource CardBgBrush}"
+                    BorderBrush="{DynamicResource CardBorderBrush}"
+                    BorderThickness="2"
+                    CornerRadius="0"
+                    Width="555" Height="30" Padding="0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="{Binding Frequency}"
+                               FontSize="20" FontWeight="Medium"
+                               Foreground="{DynamicResource TextBrush}"
+                               Margin="10,0,0,0" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="{Binding Name}"
+                               FontSize="20" FontWeight="Medium"
+                               Foreground="{DynamicResource TextBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="2" Text="{Binding Date}"
+                               FontSize="20" FontWeight="Medium"
+                               Foreground="{DynamicResource TextBrush}"
+                               HorizontalAlignment="Right" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+        </DataTemplate>
 
-        <!-- Шапка таблицы -->
-        <Style x:Key="HeaderLeft" TargetType="DataGridColumnHeader">
-            <Setter Property="FontFamily" Value="Montserrat Alternates"/>
-            <Setter Property="FontSize" Value="20"/>
-            <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Height" Value="34"/>
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
-        </Style>
-        <Style x:Key="HeaderCenter" TargetType="DataGridColumnHeader" BasedOn="{StaticResource HeaderLeft}">
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-        </Style>
-        <Style x:Key="HeaderRight" TargetType="DataGridColumnHeader" BasedOn="{StaticResource HeaderLeft}">
-            <Setter Property="HorizontalContentAlignment" Value="Right"/>
-        </Style>
+        <!-- Шапка карточки -->
+        <DataTemplate x:Key="CardHeaderTemplate">
+            <Border Background="{DynamicResource CardHeaderBrush}"
+                    Width="555" Height="28" CornerRadius="0" Padding="0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Частота"
+                               FontSize="20" FontWeight="SemiBold"
+                               Foreground="{DynamicResource CardHeaderFgBrush}"
+                               Margin="10,0,0,0" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="Название"
+                               FontSize="20" FontWeight="SemiBold"
+                               Foreground="{DynamicResource CardHeaderFgBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="2" Text="Дата"
+                               FontSize="20" FontWeight="SemiBold"
+                               Foreground="{DynamicResource CardHeaderFgBrush}"
+                               HorizontalAlignment="Right" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+        </DataTemplate>
 
-        <!-- Строка: отступ 9 между строками, серая обводка снаружи -->
-        <Style x:Key="FavoriteRowStyle" TargetType="DataGridRow">
+        <!-- Стиль ListBoxItem: без рамки -->
+        <Style x:Key="NoBorderListBoxItem" TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="0"/>
             <Setter Property="Margin" Value="0,4.5,0,4.5"/>
             <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="DataGridRow">
-                        <Border BorderBrush="#999999" BorderThickness="1"
-                                Background="{TemplateBinding Background}">
-                            <DataGridCellsPresenter x:Name="PART_DataGridCellsPresenter"
-                                                    ItemsPanel="{TemplateBinding ItemsPanel}"
-                                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
@@ -72,77 +91,76 @@
         </Style>
     </Window.Resources>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <Border Background="{DynamicResource WindowBgBrush}" CornerRadius="12">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="50"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <!-- Заголовок -->
-        <TextBlock Grid.Row="0" Text="Избранные станции"
-                   FontSize="24" FontWeight="Bold"
-                   Foreground="{DynamicResource TextBrush}"
-                   HorizontalAlignment="Left"
-                   Margin="22,18,0,0"/>
+            <!-- Шапка окна: без скруглений, без крестика -->
+            <Border Grid.Row="0"
+                    Background="{DynamicResource PanelBrush}"
+                    CornerRadius="0">
+                <TextBlock Text="Избранные станции"
+                           FontSize="24" FontWeight="Bold"
+                           Foreground="{DynamicResource TextBrush}"
+                           HorizontalAlignment="Left" VerticalAlignment="Center"
+                           Margin="12,0,0,0"/>
+            </Border>
 
-        <!-- Таблица -->
-        <DataGrid Grid.Row="1" x:Name="FavoritesGrid"
-                  Margin="0,23,0,0"
-                  Width="555" HorizontalAlignment="Center"
-                  RowHeight="30"
-                  RowStyle="{StaticResource FavoriteRowStyle}"
-                  AutoGenerateColumns="False"
-                  CanUserAddRows="False"
-                  IsReadOnly="True"
-                  HeadersVisibility="Column"
-                  GridLinesVisibility="None"
-                  BorderThickness="0"
-                  Background="Transparent"
-                  RowBackground="Transparent"
-                  Foreground="{DynamicResource TextBrush}"
-                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Частота" Binding="{Binding Frequency}" Width="120"
-                                    HeaderStyle="{StaticResource HeaderLeft}"
-                                    ElementStyle="{StaticResource CellLeft}"/>
-                <DataGridTextColumn Header="Название" Binding="{Binding Name}" Width="*"
-                                    HeaderStyle="{StaticResource HeaderCenter}"
-                                    ElementStyle="{StaticResource CellCenter}"/>
-                <DataGridTextColumn Header="Дата" Binding="{Binding Date}" Width="120"
-                                    HeaderStyle="{StaticResource HeaderRight}"
-                                    ElementStyle="{StaticResource CellRight}"/>
-            </DataGrid.Columns>
-        </DataGrid>
+            <!-- Карточки -->
+            <StackPanel Grid.Row="1" Margin="0,23,0,0"
+                        HorizontalAlignment="Center">
 
-        <!-- Кнопки -->
-        <StackPanel Grid.Row="3" Orientation="Horizontal"
-                    HorizontalAlignment="Center"
-                    Margin="0,42,0,20">
+                <!-- Шапка таблицы -->
+                <ContentControl ContentTemplate="{StaticResource CardHeaderTemplate}"
+                                HorizontalAlignment="Center"/>
 
-            <Button x:Name="SelectButton" Content="Выбрать"
-                    Style="{StaticResource RoundButton}"
-                    MinWidth="46" Height="40" Padding="12,0"
-                    FontSize="20"
-                    Background="{DynamicResource PrimaryButtonBrush}"
-                    Margin="0,0,87,0"
-                    Click="SelectButton_Click"/>
+                <!-- Список карточек -->
+                <ListBox x:Name="FavoritesListBox"
+                         ItemTemplate="{StaticResource FavoriteCardTemplate}"
+                         ItemContainerStyle="{StaticResource NoBorderListBoxItem}"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Disabled"/>
+            </StackPanel>
 
-            <Button x:Name="DeleteButton" Content="Удалить"
-                    Style="{StaticResource RoundButton}"
-                    MinWidth="46" Height="40" Padding="12,0"
-                    FontSize="20"
-                    Background="{DynamicResource PrimaryButtonBrush}"
-                    Margin="0,0,87,0"
-                    Click="DeleteButton_Click"/>
+            <!-- Кнопки -->
+            <StackPanel Grid.Row="2" Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Margin="0,42,0,20">
 
-            <Button x:Name="CloseButton" Content="Закрыть"
-                    Style="{StaticResource RoundButton}"
-                    MinWidth="46" Height="40" Padding="12,0"
-                    FontSize="20"
-                    Background="{DynamicResource PrimaryButtonBrush}"
-                    Click="CloseButton_Click"/>
-        </StackPanel>
-    </Grid>
+                <Button x:Name="SelectButton" Content="Выбрать"
+                        Style="{StaticResource RoundButton}"
+                        Width="116" Height="40" Padding="0"
+                        FontSize="18"
+                        Background="{DynamicResource AccentBrush}"
+                        Foreground="{DynamicResource AccentButtonFgBrush}"
+                        BorderThickness="0"
+                        Margin="0,0,87,0"
+                        Click="SelectButton_Click"/>
+
+                <Button x:Name="DeleteButton" Content="Удалить"
+                        Style="{StaticResource RoundButton}"
+                        Width="116" Height="40" Padding="0"
+                        FontSize="18"
+                        Background="{DynamicResource PrimaryButtonBrush}"
+                        BorderThickness="0"
+                        Margin="0,0,87,0"
+                        Click="DeleteButton_Click"/>
+
+                <Button x:Name="CloseBtn" Content="Закрыть"
+                        Style="{StaticResource RoundButton}"
+                        Width="116" Height="40" Padding="0"
+                        FontSize="18"
+                        Background="{DynamicResource PanelBrush}"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Click="CloseBtn_Click"/>
+            </StackPanel>
+        </Grid>
+    </Border>
 </Window>
