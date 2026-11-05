@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.IO.Ports" Version="8.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Montserrat_Alternates\MontserratAlternates-Black.ttf" />
+    <None Remove="Montserrat_Alternates\MontserratAlternates-BlackItalic.ttf" />
+    <None Remove="Montserrat_Alternates\MontserratAlternates-Bold.ttf" />
+    <None Remove="Montserrat_Alternates\MontserratAlternates-BoldItalic.ttf" />
+    <None Remove="Montserrat_Alternates\MontserratAlternates-ExtraBold.ttf" />
+    <None Remove="Montserrat_Alternates\MontserratAlternates-ExtraBoldItalic.ttf" />
+    <None Remove="Montserrat_Alternates\MontserratAlternates-ExtraLight.ttf" />
+    <None Remove="Montserrat_Alternates\MontserratAlternates-ExtraLightItalic.ttf" />
+    <None Remove="Montserrat_Alternates\MontserratAlternates-Italic.ttf" />
+    <None Remove="Montserrat_Alternates\MontserratAlternates-Light.ttf" />
+    <None Remove="Montserrat_Alternates\MontserratAlternates-LightItalic.ttf" />
+    <None Remove="Montserrat_Alternates\MontserratAlternates-Medium.ttf" />
+    <None Remove="Montserrat_Alternates\MontserratAlternates-MediumItalic.ttf" />
+    <None Remove="Montserrat_Alternates\MontserratAlternates-Regular.ttf" />
+    <None Remove="Montserrat_Alternates\MontserratAlternates-SemiBold.ttf" />
+    <None Remove="Montserrat_Alternates\MontserratAlternates-SemiBoldItalic.ttf" />
+    <None Remove="Montserrat_Alternates\MontserratAlternates-Thin.ttf" />
+    <None Remove="Montserrat_Alternates\MontserratAlternates-ThinItalic.ttf" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Montserrat_Alternates\MontserratAlternates-Black.ttf" />
+    <Resource Include="Montserrat_Alternates\MontserratAlternates-BlackItalic.ttf" />
+    <Resource Include="Montserrat_Alternates\MontserratAlternates-BoldItalic.ttf" />
+    <Resource Include="Montserrat_Alternates\MontserratAlternates-ExtraBold.ttf" />
+    <Resource Include="Montserrat_Alternates\MontserratAlternates-ExtraBoldItalic.ttf" />
+    <Resource Include="Montserrat_Alternates\MontserratAlternates-ExtraLight.ttf" />
+    <Resource Include="Montserrat_Alternates\MontserratAlternates-ExtraLightItalic.ttf" />
+    <Resource Include="Montserrat_Alternates\MontserratAlternates-Italic.ttf" />
+    <Resource Include="Montserrat_Alternates\MontserratAlternates-Light.ttf" />
+    <Resource Include="Montserrat_Alternates\MontserratAlternates-LightItalic.ttf" />
+    <Resource Include="Montserrat_Alternates\MontserratAlternates-Medium.ttf" />
+    <Resource Include="Montserrat_Alternates\MontserratAlternates-MediumItalic.ttf" />
+    <Resource Include="Montserrat_Alternates\MontserratAlternates-Regular.ttf" />
+    <Resource Include="Montserrat_Alternates\MontserratAlternates-SemiBold.ttf" />
+    <Resource Include="Montserrat_Alternates\MontserratAlternates-SemiBoldItalic.ttf" />
+    <Resource Include="Montserrat_Alternates\MontserratAlternates-Thin.ttf" />
+    <Resource Include="Montserrat_Alternates\MontserratAlternates-ThinItalic.ttf" />
+  </ItemGroup>
+</Project>
