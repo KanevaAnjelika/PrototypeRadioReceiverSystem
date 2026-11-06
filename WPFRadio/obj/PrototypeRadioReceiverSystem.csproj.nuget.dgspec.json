@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Users\\1213-8\\Documents\\3-ИСП\\Канева\\Radio\\PrototypeRadioReceiverSystem_\\WPFRadio\\PrototypeRadioReceiverSystem.csproj": {}
+    "C:\\Users\\рс\\Documents\\Учеба\\3 курс\\Курсовой проект\\WPF\\PrototypeRadioReceiverSystem____\\WPFRadio\\PrototypeRadioReceiverSystem.csproj": {}
   },
   "projects": {
-    "D:\\Users\\1213-8\\Documents\\3-ИСП\\Канева\\Radio\\PrototypeRadioReceiverSystem_\\WPFRadio\\PrototypeRadioReceiverSystem.csproj": {
+    "C:\\Users\\рс\\Documents\\Учеба\\3 курс\\Курсовой проект\\WPF\\PrototypeRadioReceiverSystem____\\WPFRadio\\PrototypeRadioReceiverSystem.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Users\\1213-8\\Documents\\3-ИСП\\Канева\\Radio\\PrototypeRadioReceiverSystem_\\WPFRadio\\PrototypeRadioReceiverSystem.csproj",
+        "projectUniqueName": "C:\\Users\\рс\\Documents\\Учеба\\3 курс\\Курсовой проект\\WPF\\PrototypeRadioReceiverSystem____\\WPFRadio\\PrototypeRadioReceiverSystem.csproj",
         "projectName": "PrototypeRadioReceiverSystem",
-        "projectPath": "D:\\Users\\1213-8\\Documents\\3-ИСП\\Канева\\Radio\\PrototypeRadioReceiverSystem_\\WPFRadio\\PrototypeRadioReceiverSystem.csproj",
-        "packagesPath": "C:\\Users\\1213-8\\.nuget\\packages\\",
-        "outputPath": "D:\\Users\\1213-8\\Documents\\3-ИСП\\Канева\\Radio\\PrototypeRadioReceiverSystem_\\WPFRadio\\obj\\",
+        "projectPath": "C:\\Users\\рс\\Documents\\Учеба\\3 курс\\Курсовой проект\\WPF\\PrototypeRadioReceiverSystem____\\WPFRadio\\PrototypeRadioReceiverSystem.csproj",
+        "packagesPath": "C:\\Users\\рс\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\рс\\Documents\\Учеба\\3 курс\\Курсовой проект\\WPF\\PrototypeRadioReceiverSystem____\\WPFRadio\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\1213-8\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\рс\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -26,11 +26,11 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net48": {
-            "framework": "net48",
             "targetAlias": "net48",
             "projectReferences": {}
           }
@@ -45,11 +45,10 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "10.0.400"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net48": {
-          "framework": "net48",
           "targetAlias": "net48",
           "dependencies": {
             "System.IO.Ports": {
@@ -57,7 +56,7 @@
               "version": "[8.0.0, )"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.401\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305\\RuntimeIdentifierGraph.json"
         }
       },
       "runtimes": {

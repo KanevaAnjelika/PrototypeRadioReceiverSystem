@@ -60,7 +60,7 @@
 
                     <!-- Частота -->
                     <TextBlock x:Name="FrequencyTextBlock"
-                               Text="101.5 МГц"
+                               Text="Ожидание подключения"
                                FontSize="48" FontWeight="Bold"
                                Foreground="{DynamicResource AccentBrush}"
                                HorizontalAlignment="Center"
@@ -68,7 +68,7 @@
 
                     <!-- Уровень сигнала -->
                     <TextBlock x:Name="SignalTextBlock"
-                               Text="Уровень сигнала: 8/10 Стерео"
+                               Text="Уровень сигнала: Ожидание данных"
                                FontSize="16" FontWeight="Bold"
                                Foreground="{DynamicResource TextBrush}"
                                HorizontalAlignment="Center"
@@ -162,17 +162,12 @@
                                VerticalAlignment="Center"
                                Margin="24,0,10,0"/>
 
-                    <!-- ComboBox: минимальная ширина, цвета меняются по теме -->
+                    <!-- ComboBox: порты загружаются динамически из кода -->
                     <ComboBox Grid.Column="1" x:Name="PortComboBox"
                               Style="{StaticResource RoundComboBox}"
                               Width="100" Height="30"
                               VerticalAlignment="Center"
-                              SelectedIndex="0">
-                        <ComboBoxItem Content="COM1"/>
-                        <ComboBoxItem Content="COM2"/>
-                        <ComboBoxItem Content="COM3"/>
-                        <ComboBoxItem Content="COM4"/>
-                    </ComboBox>
+                              SelectedIndex="0"/>
 
                     <!-- Кнопка подключения: 150x30, белый жирный текст, без обводки -->
                     <Button Grid.Column="3" x:Name="ConnectButton"

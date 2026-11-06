@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Globalization;
 
 namespace PrototypeRadioReceiverSystem
 {
@@ -11,53 +9,39 @@ namespace PrototypeRadioReceiverSystem
     /// </summary>
     public class MainController
     {
-        /// <summary>
-        /// Контроллер COM-порта.
-        /// </summary>
         private readonly SecondController _serialController;
-
-        /// <summary>
-        /// Модель данных приёмника.
-        /// </summary>
         private readonly RadioData _radioData;
 
-        /// <summary>
-        /// Журнал операций (доступен из окон для отображения).
-        /// </summary>
+        /// <summary>Журнал операций.</summary>
         public StorageOperationsLog OperationLog { get; } = new StorageOperationsLog();
 
-        /// <summary>
-        /// Свойство для удобного доступа к модели данных.
-        /// </summary>
+        /// <summary>Модель данных приёмника.</summary>
         public RadioData Data => _radioData;
 
-        /// <summary>
-        /// Подключён ли порт.
-        /// </summary>
+        /// <summary>Порт подключён.</summary>
         public bool IsConnected => _serialController.IsConnected;
 
-        /// <summary>
-        /// Создаёт контроллер с начальными настройками.
-        /// </summary>
+        /// <summary>Частота обновилась (для MainWindow).</summary>
+        public event Action FrequencyChanged;
+
         public MainController()
         {
             _serialController = new SecondController();
             _radioData = new RadioData();
+            _radioData.Reset();
 
-            // Начальные данные: частота 101.5 МГц, сигнал 8/10, стерео
-            _radioData.Initialize(101.5f, 8, true);
+            _serialController.ConnectionLost += () =>
+            {
+                OperationLog.AddRecord("Потеря соединения с Arduino");
+                _radioData.Reset();
+            };
         }
 
-        /// <summary>
-        /// Подключается к COM-порту Arduino.
-        /// </summary>
-        /// <param name="portName">Имя порта, например «COM3».</param>
-        /// <returns>True — успешно подключились.</returns>
+        /// <summary>Подключается к COM-порту Arduino.</summary>
         public bool ConnectToPort(string portName)
         {
             bool result = _serialController.Connect(portName);
 
-            // Логируем результат
             if (result)
                 OperationLog.AddRecord("Подключение к " + portName + " — успешно");
             else
@@ -66,68 +50,138 @@ namespace PrototypeRadioReceiverSystem
             return result;
         }
 
-        /// <summary>
-        /// Отправляет команду в Arduino (например, «UP», «DOWN», «SCAN»).
-        /// </summary>
-        /// <param name="cmd">Команда без завершающего '\n' — контроллер сам добавит.</param>
-        /// <returns>True — команда отправлена.</returns>
+        /// <summary>Отключается от COM-порта.</summary>
+        public void Disconnect()
+        {
+            _serialController.Disconnect();
+            _radioData.Reset();
+            OperationLog.AddRecord("Отключение от порта");
+        }
+
+        // ---- Команды ----
+
+        public bool StepUp()      { return SendCommand("UP"); }
+        public bool StepDown()    { return SendCommand("DOWN"); }
+        public bool Scan()        { return SendCommand("SCAN"); }
+        public bool SaveStation() { return SendCommand("SAVE"); }
+        public bool LoadStation() { return SendCommand("LOAD"); }
+
+        /// <summary>Устанавливает точную частоту.</summary>
+        public bool SetStation(float freq)
+        {
+            string cmd = "SET " + freq.ToString("F1", CultureInfo.InvariantCulture);
+            return SendCommand(cmd);
+        }
+
+        /// <summary>Отправляет команду в Arduino.</summary>
         public bool SendCommand(string cmd)
         {
             bool sent = _serialController.SendCommand(cmd);
 
             if (sent)
-                OperationLog.AddRecord("Команда отправлена: " + cmd);
+                OperationLog.AddRecord("→ " + cmd);
             else
-                OperationLog.AddRecord("Ошибка отправки команды: " + cmd);
+                OperationLog.AddRecord("Ошибка отправки: " + cmd);
 
             return sent;
         }
 
+        // ---- Приём данных от Arduino ----
+
         /// <summary>
-        /// Читает данные из порта и обновляет модель.
-        /// Ожидаемый формат строки: «101.5,8,1»
-        /// где 101.5 — частота, 8 — уровень сигнала, 1 — стерео (1=да, 0=нет).
+        /// Забирает все накопленные строки из порта и обрабатывает их.
+        /// Вызывать из DispatcherTimer.
         /// </summary>
-        public void UpdateDataFromArduino()
+        public void PollArduino()
         {
-            string raw = _serialController.ReadData();
-
-            if (string.IsNullOrEmpty(raw))
-                return; // Нет данных или таймаут
-
-            // Разбиваем строку по запятым
-            string[] parts = raw.Split(',');
-
-            if (parts.Length < 3)
-            {
-                OperationLog.AddRecord("Ошибка формата данных от Arduino: " + raw);
+            if (!_serialController.IsConnected)
                 return;
-            }
 
-            try
-            {
-                // Обновляем модель данных
-                _radioData.UpdateFromArduino(raw);
+            List<string> lines = _serialController.ReadAvailableLines();
+            if (lines == null)
+                return;
 
-                // Логируем успешное обновление
-                OperationLog.AddRecord(
-                    "Данные: " + _radioData.GetFrequencyDisplay() +
-                    ", сигнал " + _radioData.SignalLevel + "/10, " +
-                    (_radioData.IsStereo ? "стерео" : "моно"));
-            }
-            catch (Exception)
+            foreach (string line in lines)
             {
-                OperationLog.AddRecord("Ошибка парсинга данных: " + raw);
+                ProcessLine(line);
             }
         }
 
-        /// <summary>
-        /// Отключается от COM-порта.
-        /// </summary>
-        public void Disconnect()
+        private void ProcessLine(string line)
         {
-            _serialController.Disconnect();
-            OperationLog.AddRecord("Отключение от порта");
+            if (string.IsNullOrEmpty(line))
+                return;
+
+            // EVT,<code>[,<arg>] — событие
+            if (line.StartsWith("EVT,"))
+            {
+                string rest = line.Substring(4);
+                int comma = rest.IndexOf(',');
+                string code = comma > 0 ? rest.Substring(0, comma) : rest;
+                string arg = comma > 0 ? rest.Substring(comma + 1) : null;
+
+                OperationLog.AddRecord("← " + code + (arg != null ? " " + arg : ""));
+                return;
+            }
+
+            // ERR,<text> — ошибка от устройства
+            if (line.StartsWith("ERR,"))
+            {
+                OperationLog.AddRecord("Ошибка Arduino: " + line.Substring(4));
+                return;
+            }
+
+            // Строка статуса: «101.5,8,1»
+            string[] parts = line.Split(',');
+            if (parts.Length >= 3)
+            {
+                try
+                {
+                    float freq = float.Parse(parts[0].Trim(), CultureInfo.InvariantCulture);
+                    int sig = int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture);
+                    int stereo = int.Parse(parts[2].Trim(), CultureInfo.InvariantCulture);
+
+                    if (freq >= 76.0f && freq <= 108.0f && sig >= 0 && sig <= 10)
+                    {
+                        float oldFreq = _radioData.CurrentFrequency;
+                        _radioData.UpdateFromArduino(line);
+
+                        // Логируем только при реальном изменении (не спамим каждые 400мс)
+                        if (Math.Abs(oldFreq - _radioData.CurrentFrequency) > 0.01f)
+                            FrequencyChanged?.Invoke();
+                    }
+                }
+                catch
+                {
+                    OperationLog.AddRecord("Ошибка парсинга: " + line);
+                }
+            }
+        }
+
+        // ---- Избранное ----
+
+        /// <summary>Сохраняет текущую частоту в избранное с указанным именем.</summary>
+        public void AddCurrentToFavorites(string name = null)
+        {
+            if (_radioData.CurrentFrequency > 0)
+            {
+                _radioData.AddToFavorites(_radioData.CurrentFrequency, name);
+                OperationLog.AddRecord("Добавлено в избранное: " + _radioData.CurrentFrequency.ToString("F1") + " МГц");
+            }
+        }
+
+        /// <summary>Удаляет станцию из избранного.</summary>
+        public void RemoveFavorite(float freq)
+        {
+            if (_radioData.RemoveFromFavorites(freq))
+                OperationLog.AddRecord("Удалено из избранного: " + freq.ToString("F1") + " МГц");
+        }
+
+        /// <summary>Выбирает станцию из избранного — отправляет SET-команду.</summary>
+        public void SelectFavorite(float freq)
+        {
+            SetStation(freq);
+            OperationLog.AddRecord("Выбрана станция: " + freq.ToString("F1") + " МГц");
         }
     }
 }

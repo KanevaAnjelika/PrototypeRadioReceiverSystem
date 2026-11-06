@@ -1,10 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "JwRFl5d6Hsw=",
+  "dgSpecHash": "95cGBYrzonI=",
   "success": true,
-  "projectFilePath": "D:\\Users\\1213-8\\Documents\\3-ИСП\\Канева\\Radio\\PrototypeRadioReceiverSystem_\\WPFRadio\\PrototypeRadioReceiverSystem.csproj",
+  "projectFilePath": "C:\\Users\\рс\\Documents\\Учеба\\3 курс\\Курсовой проект\\WPF\\PrototypeRadioReceiverSystem____\\WPFRadio\\PrototypeRadioReceiverSystem.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\1213-8\\.nuget\\packages\\system.io.ports\\8.0.0\\system.io.ports.8.0.0.nupkg.sha512"
+    "C:\\Users\\рс\\.nuget\\packages\\system.io.ports\\8.0.0\\system.io.ports.8.0.0.nupkg.sha512"
   ],
   "logs": []
 }

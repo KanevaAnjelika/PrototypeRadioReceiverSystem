@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -15,68 +14,57 @@ namespace PrototypeRadioReceiverSystem
     /// </summary>
     public partial class LogWindow : Window
     {
-        private List<LogEntry> _actions = new List<LogEntry>();
-        private List<LogEntry> _errors = new List<LogEntry>();
+        private readonly MainController _mainController;
+        private readonly DispatcherTimer _refreshTimer;
         private bool _showActions = true;
 
-        /// <summary>
-        /// Контроллер главного окна — даёт доступ к журналу операций.
-        /// </summary>
-        private readonly MainController _mainController;
-
-        /// <summary>
-        /// Файл, в который сохраняется журнал (рядом с exe).
-        /// </summary>
-        private const string LogFileName = "operations_log.txt";
-
-        /// <summary>
-        /// Конструктор с параметром: принимает контроллер из MainWindow.
-        /// </summary>
         public LogWindow(MainController controller)
         {
             InitializeComponent();
 
             _mainController = controller;
 
-            LoadLogData();
+            // Таймер автообновления журнала пока окно открыто
+            _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+            _refreshTimer.Tick += (s, e) => RefreshLog();
+            _refreshTimer.Start();
+
             UpdateTabColors();
-            LogListBox.ItemsSource = _actions;
+            RefreshLog();
         }
 
-        /// <summary>
-        /// Загружает карточки из журнала контроллера.
-        /// Если журнал пуст — показывает тестовые карточки.
-        /// </summary>
-        private void LoadLogData()
+        /// <summary>Обновляет карточки журнала из реального контроллера.</summary>
+        private void RefreshLog()
         {
-            _actions = new List<LogEntry>();
-            _errors = new List<LogEntry>();
+            if (_mainController == null) return;
 
-            if (_mainController != null && _mainController.OperationLog.Count > 0)
+            List<LogEntry> actions = new List<LogEntry>();
+            List<LogEntry> errors = new List<LogEntry>();
+
+            string today = DateTime.Now.ToString("dd.MM.yyyy");
+
+            // Берём все записи из журнала контроллера
+            List<string> logs = _mainController.OperationLog.Logs;
+
+            foreach (string record in logs)
             {
-                // Разбираем записи вида «[14:35] текст» и раскладываем по вкладкам
-                string today = DateTime.Now.ToString("dd.MM.yyyy");
+                LogEntry entry = ParseRecord(record, today);
 
-                foreach (string record in _mainController.OperationLog.Logs)
-                {
-                    LogEntry entry = ParseRecord(record, today);
+                // Записи со словом «ошибка» — на вкладку Ошибки
+                if (entry.Event.IndexOf("ошибк", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    entry.Event.StartsWith("Ошибка Arduino:") ||
+                    entry.Event.StartsWith("Ошибка парсинга:"))
+                    errors.Add(entry);
+                else
+                    actions.Add(entry);
+            }
 
-                    // Записи со словом «ошибка» относим на вкладку «Ошибки»
-                    if (entry.Event.IndexOf("ошибк", StringComparison.OrdinalIgnoreCase) >= 0)
-                        _errors.Add(entry);
-                    else
-                        _actions.Add(entry);
-                }
-            }
-            else
-            {
-                LoadDemoData();
-            }
+            _actions = actions;
+            _errors = errors;
+
+            LogListBox.ItemsSource = _showActions ? _actions : _errors;
         }
 
-        /// <summary>
-        /// Разбирает строку журнала формата «[ЧЧ:ММ] текст» в карточку.
-        /// </summary>
         private static LogEntry ParseRecord(string record, string date)
         {
             int closeBracket = record.IndexOf(']');
@@ -91,23 +79,7 @@ namespace PrototypeRadioReceiverSystem
                 };
             }
 
-            // Неожиданный формат — показываем строку как есть
             return new LogEntry { Date = date, Time = "", Event = record };
-        }
-
-        private void LoadDemoData()
-        {
-            _actions = new List<LogEntry>
-            {
-                new LogEntry { Date = "28.10.2026", Time = "14:32", Event = "Частота + 101.5 МГц" },
-                new LogEntry { Date = "28.10.2026", Time = "14:30", Event = "Подключение COM1" },
-                new LogEntry { Date = "27.10.2026", Time = "09:15", Event = "Поиск станции" },
-            };
-            _errors = new List<LogEntry>
-            {
-                new LogEntry { Date = "28.10.2026", Time = "14:31", Event = "Таймаут COM-порта" },
-                new LogEntry { Date = "26.10.2026", Time = "18:00", Event = "Ошибка подключения" },
-            };
         }
 
         private void UpdateTabColors()
@@ -142,31 +114,34 @@ namespace PrototypeRadioReceiverSystem
 
         private void ClearButton_Click(object sender, RoutedEventArgs e)
         {
-            // Чистим журнал в контроллере и перечитываем карточки
             if (_mainController != null)
                 _mainController.OperationLog.Clear();
 
-            _actions = new List<LogEntry>();
-            _errors = new List<LogEntry>();
-
             LogListBox.ItemsSource = null;
-            LogListBox.ItemsSource = _showActions ? _actions : _errors;
+            RefreshLog();
             ShowToast("Журнал очищен", 0x75, 0x75, 0x75);
         }
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            // Сохраняем журнал контроллера в файл рядом с exe
-            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, LogFileName);
+            string path = System.IO.Path.Combine(
+                System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs"),
+                "operations_log.txt");
+
+            // Создаём папку logs, если нет
+            string dir = System.IO.Path.GetDirectoryName(path);
+            if (!System.IO.Directory.Exists(dir))
+                System.IO.Directory.CreateDirectory(dir);
 
             if (_mainController != null && _mainController.OperationLog.SaveToFile(path))
-                ShowToast("Журнал сохранён в файл", 0x4C, 0xAF, 0x50);
+                ShowToast("Журнал сохранён: " + path, 0x4C, 0xAF, 0x50);
             else
                 ShowToast("Не удалось сохранить журнал", 0xE5, 0x39, 0x35);
         }
 
         private void CloseBtn_Click(object sender, RoutedEventArgs e)
         {
+            _refreshTimer.Stop();
             Close();
         }
 
@@ -208,9 +183,12 @@ namespace PrototypeRadioReceiverSystem
             };
             timer.Start();
         }
+
+        // Поля для списков (нужны для переключения вкладок)
+        private List<LogEntry> _actions = new List<LogEntry>();
+        private List<LogEntry> _errors = new List<LogEntry>();
     }
 
-    // Модель строки журнала
     public class LogEntry
     {
         public string Date { get; set; }

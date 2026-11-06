@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -12,57 +13,104 @@ namespace PrototypeRadioReceiverSystem
     /// </summary>
     public partial class MainWindow : Window
     {
-        /// <summary>
-        /// Основной контроллер — связывает интерфейс с COM-портом, данными и журналом.
-        /// </summary>
-        private MainController _mainController = new MainController();
-
-        /// <summary>
-        /// Таймер для опроса Arduino (обновляет частоту и уровень сигнала каждые 500 мс).
-        /// </summary>
-        private DispatcherTimer _pollTimer;
-
+        private readonly MainController _mainController = new MainController();
+        private readonly DispatcherTimer _pollTimer;
         private bool _isDarkTheme = false;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            // Создаём таймер: каждые 500 мс опрашиваем порт и обновляем UI
+            // Загружаем доступные COM-порты
+            LoadPorts();
+
+            // Таймер опроса Arduino — каждые 500мс
             _pollTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
             _pollTimer.Tick += PollTimer_Tick;
             _pollTimer.Start();
 
-            // При закрытии окна останавливаем таймер и закрываем порт
+            // Событие: частота изменилась
+            _mainController.FrequencyChanged += OnFrequencyChanged;
+
+            // При закрытии — отключаемся
             Closed += MainWindow_Closed;
         }
 
-        /// <summary>
-        /// Обработчик таймера: опрашивает порт и обновляет отображение.
-        /// </summary>
+        #region Порты
+
+        private void LoadPorts()
+        {
+            PortComboBox.Items.Clear();
+            string[] ports = SecondController.GetAvailablePorts();
+            foreach (string port in ports)
+            {
+                ComboBoxItem item = new ComboBoxItem { Content = port };
+                PortComboBox.Items.Add(item);
+            }
+
+            // Если портов нет — показываем подсказку
+            if (ports.Length == 0)
+            {
+                ComboBoxItem hint = new ComboBoxItem { Content = "Нет портов" };
+                hint.IsEnabled = false;
+                PortComboBox.Items.Add(hint);
+            }
+        }
+
+        private void RefreshPorts()
+        {
+            string selected = PortComboBox.SelectedValue as string;
+            LoadPorts();
+            if (!string.IsNullOrEmpty(selected))
+                PortComboBox.SelectedItem = PortComboBox.Items.Contains(selected)
+                    ? PortComboBox.Items.GetItemAt(Array.IndexOf(SecondController.GetAvailablePorts(), selected))
+                    : null;
+        }
+
+        #endregion
+
+        #region Обновление UI
+
         private void PollTimer_Tick(object sender, EventArgs e)
         {
-            // Если порт не подключён — ничего не делаем
             if (!_mainController.IsConnected)
                 return;
 
-            // Читаем данные из порта (UpdateDataFromArduino обновляет _radioData)
-            _mainController.UpdateDataFromArduino();
+            // Забираем данные из Serial-порта
+            _mainController.PollArduino();
 
-            // Обновляем интерфейс
-            FrequencyTextBlock.Text = _mainController.Data.GetFrequencyDisplay();
-            SignalTextBlock.Text = _mainController.Data.GetSignalDisplay();
+            // Обновляем текстовые поля из модели данных (INotifyPropertyChanged)
+            FrequencyTextBlock.Text = _mainController.Data.FrequencyDisplay;
+            SignalTextBlock.Text = _mainController.Data.SignalDisplay;
+
+            // Обновляем статус-индикатор по уровню сигнала
+            int sig = _mainController.Data.SignalLevel;
+            if (sig >= 7)
+                StatusIndicator.Fill = MakeBrush(0x00, 0xC8, 0x53);   // зелёный
+            else if (sig >= 3)
+                StatusIndicator.Fill = MakeBrush(0xFF, 0xA0, 0x00);   // оранжевый
+            else
+                StatusIndicator.Fill = MakeBrush(0xE5, 0x39, 0x35);  // красный
         }
 
-        /// <summary>
-        /// При закрытии окна останавливаем таймер и отключаемся от порта.
-        /// </summary>
+        private void OnFrequencyChanged()
+        {
+            // Частота изменилась — обновить UI (уже в pollTimer, но можно и отдельно)
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                FrequencyTextBlock.Text = _mainController.Data.FrequencyDisplay;
+                SignalTextBlock.Text = _mainController.Data.SignalDisplay;
+            }));
+        }
+
         private void MainWindow_Closed(object sender, EventArgs e)
         {
             _pollTimer.Stop();
             if (_mainController.IsConnected)
                 _mainController.Disconnect();
         }
+
+        #endregion
 
         #region Тема
 
@@ -87,13 +135,10 @@ namespace PrototypeRadioReceiverSystem
                 res["AccentButtonFgBrush"] = Brushes.White;
                 res["TextBrush"] = Brushes.White;
                 res["TabActiveBrush"] = Brushes.White;
-                // ComboBox: чёрный фон, белый текст, обводка #7F4EA8
                 res["ComboBoxBgBrush"] = MakeBrush(0x00, 0x00, 0x00);
                 res["ComboBoxBorderBrush"] = MakeBrush(0x7F, 0x4E, 0xA8);
                 res["ComboBoxFgBrush"] = Brushes.White;
-                // Обводка кнопок
                 res["ButtonBorderBrush"] = MakeBrush(0x9C, 0x93, 0xE5);
-                // Карточки
                 res["CardBgBrush"] = MakeBrush(0xC7, 0xA3, 0xD2);
                 res["CardBorderBrush"] = MakeBrush(0x9C, 0x93, 0xE5);
                 res["CardHeaderBrush"] = MakeBrush(0x9C, 0x93, 0xE5);
@@ -108,13 +153,10 @@ namespace PrototypeRadioReceiverSystem
                 res["AccentButtonFgBrush"] = Brushes.White;
                 res["TextBrush"] = MakeBrush(0x3A, 0x2B, 0x45);
                 res["TabActiveBrush"] = MakeBrush(0x00, 0x8B, 0xD0);
-                // ComboBox: белый фон, текст #333333, обводка #F5EDF0
                 res["ComboBoxBgBrush"] = Brushes.White;
                 res["ComboBoxBorderBrush"] = MakeBrush(0xF5, 0xED, 0xF0);
                 res["ComboBoxFgBrush"] = MakeBrush(0x33, 0x33, 0x33);
-                // Обводка кнопок
                 res["ButtonBorderBrush"] = Brushes.Black;
-                // Карточки
                 res["CardBgBrush"] = Brushes.White;
                 res["CardBorderBrush"] = MakeBrush(0x99, 0x99, 0x99);
                 res["CardHeaderBrush"] = MakeBrush(0x9A, 0x99, 0xE1);
@@ -132,43 +174,45 @@ namespace PrototypeRadioReceiverSystem
 
         #region Подключение
 
-        /// <summary>
-        /// Кнопка подключения/отключения COM-порта.
-        /// </summary>
         private void ConnectButton_Click(object sender, RoutedEventArgs e)
         {
-            // Если уже подключены — отключаемся
             if (_mainController.IsConnected)
             {
                 _mainController.Disconnect();
                 ConnectButton.Content = "Подключиться";
-                StatusIndicator.Fill = MakeBrush(0x9E, 0x9E, 0x9E); // серый
+                StatusIndicator.Fill = MakeBrush(0x9E, 0x9E, 0x9E);
+                SetButtonsEnabled(false);
                 return;
             }
 
-            // Не подключены — пытаемся подключиться
-            // Берём выбранный порт из ComboBox
             ComboBoxItem selectedItem = PortComboBox.SelectedItem as ComboBoxItem;
             string portName = selectedItem != null
                 ? selectedItem.Content as string
                 : null;
 
-            if (string.IsNullOrEmpty(portName))
+            if (string.IsNullOrEmpty(portName) || portName == "Нет портов")
                 return;
 
-            // Подключаемся через контроллер
             if (_mainController.ConnectToPort(portName))
             {
-                // Успех — меняем текст кнопки и индикатор на зелёный
                 ConnectButton.Content = "Отключиться";
                 StatusIndicator.Fill = MakeBrush(0x00, 0xC8, 0x53);
+                SetButtonsEnabled(true);
             }
             else
             {
-                // Ошибка — оставляем текст «Подключиться» и индикатор серый
                 ConnectButton.Content = "Подключиться";
                 StatusIndicator.Fill = MakeBrush(0x9E, 0x9E, 0x9E);
             }
+        }
+
+        private void SetButtonsEnabled(bool enabled)
+        {
+            FreqUpButton.IsEnabled = enabled;
+            FreqDownButton.IsEnabled = enabled;
+            ScanButton.IsEnabled = enabled;
+            SaveButton.IsEnabled = enabled;
+            FavoritesButton.IsEnabled = enabled;
         }
 
         #endregion
@@ -177,22 +221,27 @@ namespace PrototypeRadioReceiverSystem
 
         private void FreqUpButton_Click(object sender, RoutedEventArgs e)
         {
-            _mainController.SendCommand("UP");
+            _mainController.StepUp();
         }
 
         private void FreqDownButton_Click(object sender, RoutedEventArgs e)
         {
-            _mainController.SendCommand("DOWN");
+            _mainController.StepDown();
         }
 
         private void ScanButton_Click(object sender, RoutedEventArgs e)
         {
-            _mainController.SendCommand("SCAN");
+            _mainController.Scan();
         }
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            _mainController.SendCommand("SAVE");
+            // Сохраняем текущую частоту в EEPROM (Arduino)
+            _mainController.SaveStation();
+
+            // Добавляем в WPF-избранное с именем по умолчанию
+            _mainController.AddCurrentToFavorites(
+                "Станция " + _mainController.Data.CurrentFrequency.ToString("F1"));
         }
 
         #endregion
@@ -201,14 +250,15 @@ namespace PrototypeRadioReceiverSystem
 
         private void FavoritesButton_Click(object sender, RoutedEventArgs e)
         {
-            // Передаём _mainController в окно — чтобы оно могло читать данные и журнал
             FavoritesWindow favoritesWindow = new FavoritesWindow(_mainController) { Owner = this };
             favoritesWindow.ShowDialog();
+
+            // После закрытия окна избранного — обновить список портов
+            // (Arduino мог отключиться/переподключиться)
         }
 
         private void LogButton_Click(object sender, RoutedEventArgs e)
         {
-            // Передаём _mainController в окно — чтобы оно могло показывать журнал
             LogWindow logWindow = new LogWindow(_mainController) { Owner = this };
             logWindow.ShowDialog();
         }

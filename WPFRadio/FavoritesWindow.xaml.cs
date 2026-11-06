@@ -1,6 +1,12 @@
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Threading;
 
 namespace PrototypeRadioReceiverSystem
 {
@@ -9,63 +15,75 @@ namespace PrototypeRadioReceiverSystem
     /// </summary>
     public partial class FavoritesWindow : Window
     {
-        /// <summary>
-        /// Контроллер главного окна — даёт доступ к данным и журналу.
-        /// </summary>
         private readonly MainController _mainController;
+        private const string FavoritesFileName = "favorites.txt";
 
-        /// <summary>
-        /// Конструктор с параметром: принимает контроллер из MainWindow.
-        /// </summary>
         public FavoritesWindow(MainController controller)
         {
             InitializeComponent();
 
             _mainController = controller;
-
             LoadFavorites();
         }
 
-        /// <summary>
-        /// Загружает список избранных станций.
-        /// Если в контроллере избранного ещё нет — показывает тестовые карточки.
-        /// </summary>
+        /// <summary>Загружает избранное из файла и из модели данных.</summary>
         private void LoadFavorites()
         {
             List<FavoriteStation> stations = new List<FavoriteStation>();
 
-            // Пробуем взять реальные избранные частоты из модели данных
-            if (_mainController != null && _mainController.Data.Favorites.Count > 0)
+            // 1. Из модели данных (пополняется при нажатии SAVE в MainWindow)
+            foreach (FavoriteInfo fav in _mainController.Data.Favorites)
             {
-                foreach (float freq in _mainController.Data.Favorites)
+                stations.Add(new FavoriteStation
                 {
-                    stations.Add(new FavoriteStation
-                    {
-                        Frequency = freq.ToString("F1") + " МГц",
-                        Name = "Сохранённая станция",
-                        Date = ""
-                    });
-                }
-            }
-            else
-            {
-                // Тестовые карточки, пока избранное пусто
-                stations.Add(new FavoriteStation { Frequency = "101.5 МГц", Name = "Русское радио", Date = "28.10.2026" });
-                stations.Add(new FavoriteStation { Frequency = "88.6 МГц", Name = "Максимум", Date = "27.10.2026" });
-                stations.Add(new FavoriteStation { Frequency = "93.1 МГц", Name = "Рекорд ФМ", Date = "25.10.2026" });
+                    Frequency = fav.Frequency.ToString("F1") + " МГц",
+                    Name = string.IsNullOrEmpty(fav.Name) ? "—" : fav.Name,
+                    Date = fav.Date
+                });
             }
 
             FavoritesListBox.ItemsSource = stations;
+
+            if (stations.Count == 0)
+            {
+                FavoritesListBox.Items.Add(new TextBlock
+                {
+                    Text = "Нет избранных станций. Нажмите «Сохранить» на частоте.",
+                    Foreground = Brushes.Gray,
+                    FontSize = 14,
+                    TextAlignment = TextAlignment.Center,
+                    Margin = new Thickness(0, 10, 0, 0)
+                });
+            }
         }
 
         private void SelectButton_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: выбрать станцию и применить её частоту в главном окне
+            FavoriteStation selected = FavoritesListBox.SelectedItem as FavoriteStation;
+            if (selected == null) return;
+
+            // Парсим частоту из строки «101.5 МГц»
+            string freqStr = selected.Frequency.Replace(" МГц", "").Trim();
+            if (float.TryParse(freqStr, NumberStyles.Float, CultureInfo.InvariantCulture, out float freq))
+            {
+                _mainController.SelectFavorite(freq);
+                MessageBox.Show("Выбрана: " + selected.Frequency, "Избранное", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
 
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: удалить выбранную станцию из списка
+            FavoriteStation selected = FavoritesListBox.SelectedItem as FavoriteStation;
+            if (selected == null) return;
+
+            // Парсим частоту
+            string freqStr = selected.Frequency.Replace(" МГц", "").Trim();
+            if (float.TryParse(freqStr, NumberStyles.Float, CultureInfo.InvariantCulture, out float freq))
+            {
+                _mainController.RemoveFavorite(freq);
+                LoadFavorites();
+                MessageBox.Show("Удалено: " + selected.Frequency, "Избранное", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
 
         private void CloseBtn_Click(object sender, RoutedEventArgs e)
@@ -73,7 +91,6 @@ namespace PrototypeRadioReceiverSystem
             Close();
         }
 
-        // Перетаскивание окна за шапку
         private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Pressed)
@@ -81,7 +98,7 @@ namespace PrototypeRadioReceiverSystem
         }
     }
 
-    // Модель карточки избранной станции
+    /// <summary>Модель карточки избранной станции (для DataBinding).</summary>
     public class FavoriteStation
     {
         public string Frequency { get; set; }
